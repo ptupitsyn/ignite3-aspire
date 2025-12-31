@@ -1,4 +1,5 @@
 using Apache.Ignite;
+using Microsoft.AspNetCore.Mvc;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -51,7 +52,12 @@ app.MapGet("/weatherforecast", () =>
 })
 .WithName("GetWeatherForecast");
 
-// app.MapGet("/ignite-nodes"),
+app.MapGet("/nodes", async ([FromServices] IgniteClientGroup igniteGrp) =>
+{
+    IIgnite ignite = await igniteGrp.GetIgniteAsync();
+
+    return await ignite.GetClusterNodesAsync();
+});
 
 app.MapDefaultEndpoints();
 
