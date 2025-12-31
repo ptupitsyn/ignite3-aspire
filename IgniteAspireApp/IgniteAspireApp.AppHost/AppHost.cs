@@ -20,8 +20,8 @@ var igniteService = builder.AddContainer("apacheignite", "apacheignite/ignite:3.
 
 const string curlCmd = """
                        curl -i --request POST --header "Content-Type: application/json" \
-                       --data '{"metaStorageNodes": ["defaultNode"], "clusterName": "myCluster"}' \ 
-                       http://apacheignite:10300/management/v1/cluster/init
+                       --data '{"metaStorageNodes": ["defaultNode"], "clusterName": "myCluster"}' \
+                       ${APACHEIGNITE_IGNITE_REST_API}/management/v1/cluster/init
                        """;
 
 builder.AddContainer("apacheignite-init", "curlimages/curl")
