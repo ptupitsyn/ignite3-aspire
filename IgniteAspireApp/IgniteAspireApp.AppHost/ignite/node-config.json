@@ -1,0 +1,33 @@
+{
+    "ignite": {
+        "network": {
+            "port": 3344,
+            "nodeFinder": {
+                "netClusterNodes": [
+                    "node1:3344",
+                    "node2:3344",
+                    "node3:3344"
+                ]
+            }
+        },
+        "clientConnector": {
+            "sendServerExceptionStackTraceToClient": true
+        },
+        "storage": {
+            "profiles": [
+                {
+                    "engine": "aipersist",
+                    "name": "default",
+                    "replacementMode": "CLOCK",
+                    "sizeBytes": 268435456
+                },
+                {
+                    "engine": "aimem",
+                    "initSizeBytes": 268435456,
+                    "maxSizeBytes": 268435456,
+                    "name": "inmem"
+                }
+            ]
+        }
+    }
+}
