@@ -16,6 +16,10 @@ builder.Services.AddOpenApi();
 var clientUrl = Environment.GetEnvironmentVariable("APACHEIGNITE_IGNITE_CLIENT")
                 ?? throw new InvalidOperationException("APACHEIGNITE_IGNITE_CLIENT is not set");
 
+clientUrl = clientUrl.Replace("tcp://", string.Empty); // TODO: Can we fix this in Aspire?
+
+Console.WriteLine($"Ignite client url: {clientUrl}");
+
 builder.Services.AddIgniteClientGroup(services => new IgniteClientGroupConfiguration
 {
     ClientConfiguration = new IgniteClientConfiguration(clientUrl)
