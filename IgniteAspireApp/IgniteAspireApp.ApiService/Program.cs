@@ -1,3 +1,5 @@
+using Apache.Ignite;
+
 var builder = WebApplication.CreateBuilder(args);
 
 // Add service defaults & Aspire client integrations.
@@ -8,6 +10,18 @@ builder.Services.AddProblemDetails();
 
 // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
 builder.Services.AddOpenApi();
+
+// Ignite.
+var clientUrl = Environment.GetEnvironmentVariable("APACHEIGNITE_IGNITE_CLIENT")
+                ?? throw new InvalidOperationException("APACHEIGNITE_IGNITE_CLIENT is not set");
+
+builder.Services.AddIgniteClientGroup(services => new IgniteClientGroupConfiguration
+{
+    ClientConfiguration = new IgniteClientConfiguration(clientUrl)
+    {
+        LoggerFactory = services.GetRequiredService<ILoggerFactory>()
+    }
+});
 
 var app = builder.Build();
 
@@ -36,6 +50,8 @@ app.MapGet("/weatherforecast", () =>
     return forecast;
 })
 .WithName("GetWeatherForecast");
+
+// app.MapGet("/ignite-nodes"),
 
 app.MapDefaultEndpoints();
 
