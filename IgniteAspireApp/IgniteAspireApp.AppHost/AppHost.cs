@@ -25,6 +25,7 @@ const string curlCmd = """
                        """;
 
 builder.AddContainer("apacheignite-init", "curlimages/curl")
+    .WithReference(igniteService.GetEndpoint("ignite-rest-api"))
     .WaitFor(igniteService)
     .WithArgs("sh", "-c", curlCmd)
     .WithLifetime(ContainerLifetime.Session);
