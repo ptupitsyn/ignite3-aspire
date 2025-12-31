@@ -1,4 +1,5 @@
 using Apache.Ignite;
+using Apache.Ignite.Network;
 using Microsoft.AspNetCore.Mvc;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -38,36 +39,24 @@ if (app.Environment.IsDevelopment())
     app.MapOpenApi();
 }
 
-string[] summaries = ["Freezing", "Bracing", "Chilly", "Cool", "Mild", "Warm", "Balmy", "Hot", "Sweltering", "Scorching"];
-
-app.MapGet("/", () => "API service is running. Navigate to /weatherforecast to see sample data.");
-
-app.MapGet("/weatherforecast", () =>
-{
-    var forecast = Enumerable.Range(1, 5).Select(index =>
-        new WeatherForecast
-        (
-            DateOnly.FromDateTime(DateTime.Now.AddDays(index)),
-            Random.Shared.Next(-20, 55),
-            summaries[Random.Shared.Next(summaries.Length)]
-        ))
-        .ToArray();
-    return forecast;
-})
-.WithName("GetWeatherForecast");
+app.MapGet("/", () => "API service is running. Navigate to /nodes to see Ignite nodes.");
 
 app.MapGet("/nodes", async ([FromServices] IgniteClientGroup igniteGrp) =>
 {
     IIgnite ignite = await igniteGrp.GetIgniteAsync();
 
-    return await ignite.GetClusterNodesAsync();
-});
+    IList<IClusterNode> nodes = await ignite.GetClusterNodesAsync();
+
+    IgniteNode[] vms = nodes
+        .Select(x => new IgniteNode(x.Name, x.Id.ToString(), x.Address.ToString()!))
+        .ToArray();
+
+    return vms;
+})
+.WithName("GetClusterNodes");
 
 app.MapDefaultEndpoints();
 
 app.Run();
 
-record WeatherForecast(DateOnly Date, int TemperatureC, string? Summary)
-{
-    public int TemperatureF => 32 + (int)(TemperatureC / 0.5556);
-}
+record IgniteNode(string Name, string Id, string Address);
