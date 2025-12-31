@@ -2,15 +2,6 @@ using System.Net.Sockets;
 
 var builder = DistributedApplication.CreateBuilder(args);
 
-var apiService = builder.AddProject<Projects.IgniteAspireApp_ApiService>("apiservice")
-    .WithHttpHealthCheck("/health");
-
-builder.AddProject<Projects.IgniteAspireApp_Web>("webfrontend")
-    .WithExternalHttpEndpoints()
-    .WithHttpHealthCheck("/health")
-    .WithReference(apiService)
-    .WaitFor(apiService);
-
 var igniteService = builder.AddContainer("apacheignite", "apacheignite/ignite:3.1.0")
     .WithContainerName("ignite")
     .WithEndpoint(targetPort: 10300, port: 10300, name: "ignite-rest-api", scheme: "http")
@@ -28,5 +19,16 @@ builder.AddContainer("apacheignite-init", "curlimages/curl")
     .WaitFor(igniteService)
     .WithArgs("sh", "-c", curlCmd)
     .WithLifetime(ContainerLifetime.Session);
+
+var apiService = builder.AddProject<Projects.IgniteAspireApp_ApiService>("apiservice")
+    .WithHttpHealthCheck("/health")
+    .WithReference(igniteService.GetEndpoint("ignite-client"))
+    .WaitFor(igniteService);
+
+builder.AddProject<Projects.IgniteAspireApp_Web>("webfrontend")
+    .WithExternalHttpEndpoints()
+    .WithHttpHealthCheck("/health")
+    .WithReference(apiService)
+    .WaitFor(apiService);
 
 builder.Build().Run();
