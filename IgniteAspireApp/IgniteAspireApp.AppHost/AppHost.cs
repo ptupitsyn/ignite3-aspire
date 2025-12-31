@@ -18,11 +18,10 @@ var igniteService = builder.AddContainer("apacheignite", "apacheignite/ignite:3.
     .WithBindMount("./ignite/node-config.json", "/opt/ignite/etc/node-config.json")
     .WithHttpHealthCheck("/", 409, "ignite-rest-api");
 
-const string curlCmd = """
-                       curl -i --request POST --header "Content-Type: application/json" \
-                       --data '{"metaStorageNodes": ["defaultNode"], "clusterName": "myCluster"}' \
-                       ${APACHEIGNITE_IGNITE_REST_API}/management/v1/cluster/init
-                       """;
+const string curlCmd =
+    """
+    curl -i --request POST --header "Content-Type: application/json" --data '{"metaStorageNodes": ["defaultNode"], "clusterName": "myCluster"}' ${APACHEIGNITE_IGNITE_REST_API}/management/v1/cluster/init
+    """;
 
 builder.AddContainer("apacheignite-init", "curlimages/curl")
     .WithReference(igniteService.GetEndpoint("ignite-rest-api"))
