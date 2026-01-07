@@ -1,3 +1,7 @@
+using Apache.Ignite;
+using Apache.Ignite.Network;
+using Microsoft.AspNetCore.Mvc;
+
 var builder = WebApplication.CreateBuilder(args);
 
 // Add service defaults & Aspire client integrations.
@@ -9,6 +13,22 @@ builder.Services.AddProblemDetails();
 // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
 builder.Services.AddOpenApi();
 
+// Ignite.
+var clientUrl = Environment.GetEnvironmentVariable("APACHEIGNITE_IGNITE_CLIENT")
+                ?? throw new InvalidOperationException("APACHEIGNITE_IGNITE_CLIENT is not set");
+
+clientUrl = clientUrl.Replace("tcp://", string.Empty); // TODO: Can we fix this in Aspire?
+
+Console.WriteLine($"Ignite client url: {clientUrl}");
+
+builder.Services.AddIgniteClientGroup(services => new IgniteClientGroupConfiguration
+{
+    ClientConfiguration = new IgniteClientConfiguration(clientUrl)
+    {
+        LoggerFactory = services.GetRequiredService<ILoggerFactory>()
+    }
+});
+
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
@@ -19,29 +39,24 @@ if (app.Environment.IsDevelopment())
     app.MapOpenApi();
 }
 
-string[] summaries = ["Freezing", "Bracing", "Chilly", "Cool", "Mild", "Warm", "Balmy", "Hot", "Sweltering", "Scorching"];
+app.MapGet("/", () => "API service is running. Navigate to /nodes to see Ignite nodes.");
 
-app.MapGet("/", () => "API service is running. Navigate to /weatherforecast to see sample data.");
-
-app.MapGet("/weatherforecast", () =>
+app.MapGet("/nodes", async ([FromServices] IgniteClientGroup igniteGrp) =>
 {
-    var forecast = Enumerable.Range(1, 5).Select(index =>
-        new WeatherForecast
-        (
-            DateOnly.FromDateTime(DateTime.Now.AddDays(index)),
-            Random.Shared.Next(-20, 55),
-            summaries[Random.Shared.Next(summaries.Length)]
-        ))
+    IIgnite ignite = await igniteGrp.GetIgniteAsync();
+
+    IList<IClusterNode> nodes = await ignite.GetClusterNodesAsync();
+
+    IgniteNode[] vms = nodes
+        .Select(x => new IgniteNode(x.Name, x.Id.ToString(), x.Address.ToString()!))
         .ToArray();
-    return forecast;
+
+    return vms;
 })
-.WithName("GetWeatherForecast");
+.WithName("GetClusterNodes");
 
 app.MapDefaultEndpoints();
 
 app.Run();
 
-record WeatherForecast(DateOnly Date, int TemperatureC, string? Summary)
-{
-    public int TemperatureF => 32 + (int)(TemperatureC / 0.5556);
-}
+record IgniteNode(string Name, string Id, string Address);

@@ -1,0 +1,47 @@
+﻿@page "/nodes"
+@attribute [StreamRendering(true)]
+@attribute [OutputCache(Duration = 5)]
+
+@inject IgniteApiClient IgniteApi
+
+<PageTitle>Ignite Nodes</PageTitle>
+
+<h1>Ignite Nodes</h1>
+
+<p>This component demonstrates showing data loaded from a backend API service.</p>
+
+@if (_nodes == null)
+{
+    <p><em>Loading...</em></p>
+}
+else
+{
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Name (Consistent Id)</th>
+                <th>Id</th>
+                <th>Address</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var node in _nodes)
+            {
+                <tr>
+                    <td>@node.Name</td>
+                    <td>@node.Id</td>
+                    <td>@node.Address</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+
+@code {
+    private List<IgniteNode>? _nodes;
+
+    protected override async Task OnInitializedAsync()
+    {
+        _nodes = await IgniteApi.GetNodesAsync();
+    }
+}

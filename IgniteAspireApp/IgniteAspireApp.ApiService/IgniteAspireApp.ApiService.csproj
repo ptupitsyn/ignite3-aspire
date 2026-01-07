@@ -12,6 +12,7 @@
 
   <ItemGroup>
     <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="10.0.1" />
+    <PackageReference Include="Apache.Ignite" Version="3.1.0" />
   </ItemGroup>
 
 </Project>
